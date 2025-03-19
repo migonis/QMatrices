@@ -152,7 +152,7 @@ def is_time_infinite(K_FD, eigenvectors, D, tol=1e-10, N_iter=40000, step=100):
 # Given values
 system = 'LH2'  # 'AlphaBetaTrimer'
 # Current directory (change if necessary by pwd)
-path = '/home1/p317440/CurrentNISE/NISE_Tutorials/FD_LH2/FDCG/'
+path = '/home1/p317440/CurrentNISE/NISE_Tutorials/FD_LH2/FDCG/psFDCG'
 #path = '/Users/stephanie/Documents/GitHub/Current_NISE_OD/NISE_Tutorials/0QF/'  # Local
 # Generate the filename with the system name or change name to filename
 # filename = f'{path}{system}_transfer_matrix.dat'
@@ -163,10 +163,10 @@ N = len(K_input)
 
 # Input values for annihilation and decay
 KA0 = 0  # 1.0  # Annihilation rate when no excitons are left behind
-KA1 = 1694.91525424 # 1/590*1000  # 0.59 ps annihilation time  # 0.007  # 1/200 #1. # Annihilation rate leaves one exciton behind
-KR = 0.1  # 1e-7*1000  # 10 ns radiative lifetime # 0.00001  # 1/1100 #e3 #1.0 # Radiative rate
-KNR = 1.01419878296  # 1/986000*1000  # fluorescence lifetime 986 ps # KR * (1 / 0.7 - 1)  # 0.428#e3 # Non-radiative rate
-tol = 1e-7
+KA1 = 1/0.59 # 1694.91525424 # 1/590*1000  # 0.59 ps annihilation time  # 0.007  # 1/200 #1. # Annihilation rate leaves one exciton behind
+KR = 1/10000 # 0.1  # 1e-7*1000  # 10 ns radiative lifetime # 0.00001  # 1/1100 #e3 #1.0 # Radiative rate
+KNR = 1/986 #1.01419878296  # 1/986000*1000  # fluorescence lifetime 986 ps # KR * (1 / 0.7 - 1)  # 0.428#e3 # Non-radiative rate
+tol = 1e-6
 N_iter = 20000
 step = 1000
 
