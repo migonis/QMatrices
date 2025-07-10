@@ -152,7 +152,7 @@ def is_time_infinite(K_FD, eigenvectors, D, tol=1e-10, N_iter=40000, step=100):
 # Given values
 system = 'LH2'  # 'AlphaBetaTrimer'
 # Current directory (change if necessary by pwd)
-path = '/home1/p317440/CurrentNISE/NISE_Tutorials/FD_LH2/FDCG/psFDCG'
+path = '/scratch/p317440/Jun25NISE/Tutorials_NISE/F-2DES-CG_LH2/'
 #path = '/Users/stephanie/Documents/GitHub/Current_NISE_OD/NISE_Tutorials/0QF/'  # Local
 # Generate the filename with the system name or change name to filename
 # filename = f'{path}{system}_transfer_matrix.dat'
@@ -161,11 +161,26 @@ filename = 'RateMatrix.dat'
 K_input = np.loadtxt(filename)
 N = len(K_input)
 
+# Conversion Factors
+ns2ps = 1e3
+fs2ps = 1e-3
+
+# Lifetimes from literature
+tauF = 986  # 986 ps
+tauR = 10*ns2ps  # 10 ns
+tauA1 = 0.59  # 0.59 ps
+
+# Compute Rates
+kF = 1/tauF
+kR = 1/tauR
+kA1 = 1/tauA1
+kNR = kF-kR  # kF = kR + kNR
+
 # Input values for annihilation and decay
-KA0 = 0  # 1.0  # Annihilation rate when no excitons are left behind
-KA1 = 1/0.59 # 1694.91525424 # 1/590*1000  # 0.59 ps annihilation time  # 0.007  # 1/200 #1. # Annihilation rate leaves one exciton behind
-KR = 1/10000 # 0.1  # 1e-7*1000  # 10 ns radiative lifetime # 0.00001  # 1/1100 #e3 #1.0 # Radiative rate
-KNR = 1/986 #1.01419878296  # 1/986000*1000  # fluorescence lifetime 986 ps # KR * (1 / 0.7 - 1)  # 0.428#e3 # Non-radiative rate
+KA0 = 0  # Annihilation rate when no excitons are left behind
+KA1 = kA1  # Annihilation rate leaves one exciton behind
+KR = kR  # Radiative rate
+KNR = kNR  # Non-radiative rate
 tol = 1e-6
 N_iter = 20000
 step = 1000
@@ -212,34 +227,36 @@ try:
 except ValueError as err:
     print('ValueError:', err)
 
-#################### PLOTTING ##################
-factor = 1  # 1000
-# Visualize Matrix as plot #
-fig1, ax1 = plt.subplots(figsize=(2.5, 2.5))
-fig2, ax2 = plt.subplots()
-kmin = np.min(np.min(K_input))
-im1 = ax1.matshow(K_input, cmap='RdBu', vmin=kmin, vmax=-kmin)
-fig1.colorbar(im1, ax=ax1)
-im2 = ax2.matshow(K_FD, cmap='RdBu', vmin=kmin, vmax=-kmin)
-fig2.suptitle(
-    'N:' + str(int(N)) + ' with $k_R$:' + str(round(KR, 5)) + ', $k_{NR}$:' + str(round(KNR, 5)) + ', $k_{A0}$:' + str(
-        round(KA0, 5)) + ', $k_{A1}:$' + str(round(KA1, 5)))
-fig2.colorbar(im2, ax=ax2)
-print('kmin = ', kmin)
-# Loop over data dimensions and create text annotations.
-'''
-for i in range(len(K_FD)):
-    for j in range(len(K_FD)):
-        text = ax2.text(j, i, int(np.round(K_FD[i, j])), ha="center", va="center", color="k")
-'''
-for i in range(len(K_input)):
-    for j in range(len(K_input)):
-        text = ax1.text(j, i, int(np.round(factor * K_input[i, j])), ha="center", va="center", color="k")
-filename2 = f'{path}{system}_N{int(N)}-R_{round(KR, 3)}-NR_{round(KNR, 3)}-A0_{round(KA0, 3)}-A1_{round(KA1, 3)}.png'
-fig2.savefig(filename2, dpi=400)
-filename1 = f'{path}{system}_N{int(N)}.png'
-fig1.savefig(filename1, dpi=400)
-plt.show()
+plotYN = 0
+if plotYN != 0:
+    #################### PLOTTING ##################
+    factor = 1  # 1000
+    # Visualize Matrix as plot #
+    fig1, ax1 = plt.subplots(figsize=(2.5, 2.5))
+    fig2, ax2 = plt.subplots()
+    kmin = np.min(np.min(K_input))
+    im1 = ax1.matshow(K_input, cmap='RdBu', vmin=kmin, vmax=-kmin)
+    fig1.colorbar(im1, ax=ax1)
+    im2 = ax2.matshow(K_FD, cmap='RdBu', vmin=kmin, vmax=-kmin)
+    fig2.suptitle(
+        'N:' + str(int(N)) + ' with $k_R$:' + str(round(KR, 5)) + ', $k_{NR}$:' + str(round(KNR, 5)) + ', $k_{A0}$:' + str(
+            round(KA0, 5)) + ', $k_{A1}:$' + str(round(KA1, 5)))
+    fig2.colorbar(im2, ax=ax2)
+    print('kmin = ', kmin)
+    # Loop over data dimensions and create text annotations.
+    '''
+    #for i in range(len(K_FD)):
+    #    for j in range(len(K_FD)):
+    #        text = ax2.text(j, i, int(np.round(K_FD[i, j])), ha="center", va="center", color="k")
+    '''
+    for i in range(len(K_input)):
+        for j in range(len(K_input)):
+            text = ax1.text(j, i, int(np.round(factor * K_input[i, j])), ha="center", va="center", color="k")
+    filename2 = f'{path}{system}_N{int(N)}-R_{round(KR, 4)}-NR_{round(KNR, 4)}-A0_{round(KA0, 4)}-A1_{round(KA1, 4)}.pdf'
+    fig2.savefig(filename2, dpi=400)
+    filename1 = f'{path}{system}_N{int(N)}.pdf'
+    fig1.savefig(filename1, dpi=400)
+    plt.show()
 
 print('Done')
 
