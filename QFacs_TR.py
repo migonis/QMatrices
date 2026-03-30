@@ -166,7 +166,7 @@ def getQs(K_FD,it,N):
         Q1[i] += np.dot(Prod[-(N+3):, range(f_states, f_states + N)[i]], Radiative_states)
     return Prod, Q1, Q2
 
-# Given values
+# Input values
 system = 'LH2'  # 'AlphaBetaTrimer'
 # Current directory (change if necessary by pwd)
 path = '/scratch/p317440/Branch_Testing/Systems/FD-LH2/TimeResolution/' 
@@ -206,8 +206,10 @@ N_iter = 20000
 t4 = 0.1  # in ps
 steps = 10
 
-# Find the segment configurations corresponding to each double excited state
-# c_w_r[f_state_number][site_number(0/1)] returns the number of the excited segment in that site number
+# Find the segment configurations corresponding to each 
+# double excited state.
+# c_w_r[f_state_number][site_number(0/1)] returns the 
+# number of the excited segment in that site number
 c_w_r = list(itertools.combinations_with_replacement(range(N), 2))
 
 # All states
@@ -224,25 +226,25 @@ K_Rf = Rmatrix(N, c_w_r, K_R, f_states)
 mati = doublyMatrix(c_w_r, K_input)
 K_FD = FDMatrix(f_states, e_states, g_states, K_input, K_NR, K_R, K_A0, K_A1, K_NRf, K_Rf, mati)
 
-#################################################################################################
-eigenvalues, eigenvectors, D, A_reconstructed = diagonalize_matrix(K_FD)
+#########################################
+# eigenvalues, eigenvectors, D, A_reconstructed = diagonalize_matrix(K_FD) # We don't need to diagonalize now.
 ######### Now compute Q1 and Q2 #########
-
-
 
 Prod, Q1, Q2 = getQs(K_FD,t4,N)
 np.savetxt('Q1s_TR_func.dat', Q1, delimiter=' ')
 np.savetxt('Q2s_TR_func.dat', Q2, delimiter=' ')
 np.savetxt('expK_FD_t4_func.dat', Prod, delimiter=' ')
 
-#################################################################################################
+##########################################
+# All detection times to be considered
 t4s = [0.001, 0.002, 0.005, 0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 
        1., 2., 5., 10., 20., 50., 100., 200., 500., 1000.,
        2000., 5000., 10000., 20000., 50000., 100000.]
-Nt4 = len(t4s)
-emptyQs = np.zeros((1+len(Q1)+len(Q2),len(t4s)))
+Nt4 = len(t4s) # How many detection times are there.
+emptyQs = np.zeros((1+len(Q1)+len(Q2),len(t4s))) # Create empty array for storage
 
 for i in range(len(t4s)):
+    # Here we will store the Q1s and Q2s corresponding to each t4
     _, Q1t, Q2t = getQs(K_FD,t4s[i],N)
     emptyQs[0,i]            = t4s[i]
     emptyQs[1:len(Q1t)+1,i] = Q1t
@@ -251,9 +253,8 @@ print(f'lenQ1 = {len(Q1)}')
 np.savetxt('ManyQs.dat', emptyQs, delimiter=',')
 '''
 try:
-    # it, Prod = time_resolved(K_FD, t4, steps)
-    # it, Prod = is_time_infinite(K_FD, eigenvectors, D, tol, N_iter, step)
-    it = t4
+    # Calculate Q factors at infinite time.
+    it, Prod = is_time_infinite(K_FD, eigenvectors, D, tol, N_iter, step)
     Prod = expm(K_FD * it)
     roundProd = np.round(Prod, 5)
     Q2 = np.zeros(f_states)
@@ -280,40 +281,10 @@ try:
 except ValueError as err:
     print('ValueError:', err)
 
-plotYN = 0
-if plotYN != 0:
-    #################### PLOTTING ##################
-    factor = 1  # 1000
-    # Visualize Matrix as plot #
-    fig1, ax1 = plt.subplots(figsize=(2.5, 2.5))
-    fig2, ax2 = plt.subplots()
-    kmin = np.min(np.min(K_input))
-    im1 = ax1.matshow(K_input, cmap='RdBu', vmin=kmin, vmax=-kmin)
-    fig1.colorbar(im1, ax=ax1)
-    im2 = ax2.matshow(K_FD, cmap='RdBu', vmin=kmin, vmax=-kmin)
-    fig2.suptitle(
-        'N:' + str(int(N)) + ' with $k_R$:' + str(round(KR, 5)) + ', $k_{NR}$:' + str(round(KNR, 5)) + ', $k_{A0}$:' + str(
-            round(KA0, 5)) + ', $k_{A1}:$' + str(round(KA1, 5)))
-    fig2.colorbar(im2, ax=ax2)
-    print('kmin = ', kmin)
-    # Loop over data dimensions and create text annotations.''' '''
-    #for i in range(len(K_FD)):
-    #    for j in range(len(K_FD)):
-    #        text = ax2.text(j, i, int(np.round(K_FD[i, j])), ha="center", va="center", color="k")
-    ''' '''
-    for i in range(len(K_input)):
-        for j in range(len(K_input)):
-            text = ax1.text(j, i, int(np.round(factor * K_input[i, j])), ha="center", va="center", color="k")
-    filename2 = f'{path}{system}_N{int(N)}-R_{round(KR, 4)}-NR_{round(KNR, 4)}-A0_{round(KA0, 4)}-A1_{round(KA1, 4)}.pdf'
-    fig2.savefig(filename2, dpi=400)
-    filename1 = f'{path}{system}_N{int(N)}.pdf'
-    fig1.savefig(filename1, dpi=400)
-    plt.show()
-
-print('Done')
 '''
 np.set_printoptions(formatter={'float_kind': '{:6.1f}'.format})
-print('K_FD')
+print('Quick overview of calculated parameters:')
+print('K_FD:')
 print(K_FD)
 print('t4:', t4, 'ps')
 print('A1:', KA1, ', A0:', KA0)
