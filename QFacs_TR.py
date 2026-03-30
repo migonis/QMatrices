@@ -201,15 +201,8 @@ KNR = kNR  # Non-radiative rate
 tol = 1e-6
 N_iter = 20000
 # step = 1000
-
-# Detection time
-t4 = 0.1  # in ps
-steps = 10
-
-# Find the segment configurations corresponding to each 
-# double excited state.
-# c_w_r[f_state_number][site_number(0/1)] returns the 
-# number of the excited segment in that site number
+# Find the segment configurations corresponding to each double excited state.
+# c_w_r[f_state_number][site_number(0/1)] returns the number of the excited segment in that site number
 c_w_r = list(itertools.combinations_with_replacement(range(N), 2))
 
 # All states
@@ -226,17 +219,21 @@ K_Rf = Rmatrix(N, c_w_r, K_R, f_states)
 mati = doublyMatrix(c_w_r, K_input)
 K_FD = FDMatrix(f_states, e_states, g_states, K_input, K_NR, K_R, K_A0, K_A1, K_NRf, K_Rf, mati)
 
-#########################################
 # eigenvalues, eigenvectors, D, A_reconstructed = diagonalize_matrix(K_FD) # We don't need to diagonalize now.
-######### Now compute Q1 and Q2 #########
+# Detection time
+t4 = 0.1  # in ps
+steps = 10
 
+#####################################
+######### Compute Q1 and Q2 #########
+
+# For a fixed detection time
 Prod, Q1, Q2 = getQs(K_FD,t4,N)
 np.savetxt('Q1s_TR_func.dat', Q1, delimiter=' ')
 np.savetxt('Q2s_TR_func.dat', Q2, delimiter=' ')
 np.savetxt('expK_FD_t4_func.dat', Prod, delimiter=' ')
 
-##########################################
-# All detection times to be considered
+# For multiple detection times
 t4s = [0.001, 0.002, 0.005, 0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 
        1., 2., 5., 10., 20., 50., 100., 200., 500., 1000.,
        2000., 5000., 10000., 20000., 50000., 100000.]
@@ -251,37 +248,7 @@ for i in range(len(t4s)):
     emptyQs[len(Q1t)+1:,i]  = Q2t
 print(f'lenQ1 = {len(Q1)}')
 np.savetxt('ManyQs.dat', emptyQs, delimiter=',')
-'''
-try:
-    # Calculate Q factors at infinite time.
-    it, Prod = is_time_infinite(K_FD, eigenvectors, D, tol, N_iter, step)
-    Prod = expm(K_FD * it)
-    roundProd = np.round(Prod, 5)
-    Q2 = np.zeros(f_states)
-    Q1 = np.zeros(N)
-    Radiative_states = np.ones(N+3)# /(N+1)
-    Radiative_states[-1] = 2
-    Radiative_states[-3] = 0
-    for i in range(f_states):
-        Q2[i] += np.dot(Prod[-(N+3):, i], Radiative_states)
-        #Q2[i] += np.dot(Prod[-3:, i], np.array([0, 1, 0])) + 2 * np.dot(Prod[-3:, i], np.array([0, 0, 1]))
-    for i in range(N):
-        Q1[i] += np.dot(Prod[-(N+3):, range(f_states, f_states + N)[i]], Radiative_states)
 
-    np.savetxt('Q1s_TR.dat', Q1, delimiter=' ')
-    np.savetxt('Q2s_TR.dat', Q2, delimiter=' ')
-    np.savetxt('expK_FD_t4.dat', Prod, delimiter=' ')
-    f = open('QFactors_Log.txt', 'a')
-    f.write(
-        f'For detection time t4 = {t4} ps:\n'
-        f'For system {system} with N={int(N)} segments and rates R={round(KR, 5)}, NR={round(KNR, 5)}, A0={round(KA0, 5)}, and A1={round(KA1, 5)},\n'
-        f'Q1:{Q1}\n'f'Q2:{Q2}\n')
-    f.close()
-
-except ValueError as err:
-    print('ValueError:', err)
-
-'''
 np.set_printoptions(formatter={'float_kind': '{:6.1f}'.format})
 print('Quick overview of calculated parameters:')
 print('K_FD:')
